@@ -981,6 +981,94 @@ OMX_BOOL mm_jpeg_session_abort(mm_jpeg_job_session_t *p_session)
   return 0;
 }
 
+/** mm_jpeg_get_job_idx:
+ *
+ *  Arguments:
+ *    @my_obj: jpeg object
+ *    @client_idx: client index
+ *
+ *  Return:
+ *       job index
+ *
+ *  Description:
+ *       Get job index by client id
+ *
+ **/
+static inline int mm_jpeg_get_new_session_idx(mm_jpeg_obj *my_obj, int client_idx,
+  mm_jpeg_job_session_t **pp_session)
+{
+  int i = 0;
+  int index = -1;
+  for (i = 0; i < MM_JPEG_MAX_SESSION; i++) {
+    pthread_mutex_lock(&my_obj->clnt_mgr[client_idx].lock);
+    if (!my_obj->clnt_mgr[client_idx].session[i].active) {
+      *pp_session = &my_obj->clnt_mgr[client_idx].session[i];
+      my_obj->clnt_mgr[client_idx].session[i].active = OMX_TRUE;
+      index = i;
+      pthread_mutex_unlock(&my_obj->clnt_mgr[client_idx].lock);
+      break;
+    }
+    pthread_mutex_unlock(&my_obj->clnt_mgr[client_idx].lock);
+  }
+  return index;
+}
+
+/** mm_jpeg_get_job_idx:
+ *
+ *  Arguments:
+ *    @my_obj: jpeg object
+ *    @client_idx: client index
+ *
+ *  Return:
+ *       job index
+ *
+ *  Description:
+ *       Get job index by client id
+ *
+ **/
+static inline void mm_jpeg_remove_session_idx(mm_jpeg_obj *my_obj, uint32_t job_id)
+{
+  int client_idx =  GET_CLIENT_IDX(job_id);
+  int session_idx= GET_SESSION_IDX(job_id);
+  CDBG("%s:%d] client_idx %d session_idx %d", __func__, __LINE__,
+    client_idx, session_idx);
+  pthread_mutex_lock(&my_obj->clnt_mgr[client_idx].lock);
+  my_obj->clnt_mgr[client_idx].session[session_idx].active = OMX_FALSE;
+  pthread_mutex_unlock(&my_obj->clnt_mgr[client_idx].lock);
+}
+
+/** mm_jpeg_get_session_idx:
+ *
+ *  Arguments:
+ *    @my_obj: jpeg object
+ *    @client_idx: client index
+ *
+ *  Return:
+ *       job index
+ *
+ *  Description:
+ *       Get job index by client id
+ *
+ **/
+static inline mm_jpeg_job_session_t *mm_jpeg_get_session(mm_jpeg_obj *my_obj, uint32_t job_id)
+{
+  mm_jpeg_job_session_t *p_session = NULL;
+  int client_idx =  GET_CLIENT_IDX(job_id);
+  int session_idx= GET_SESSION_IDX(job_id);
+
+  CDBG("%s:%d] client_idx %d session_idx %d", __func__, __LINE__,
+    client_idx, session_idx);
+  if ((session_idx >= MM_JPEG_MAX_SESSION) ||
+    (client_idx >= MAX_JPEG_CLIENT_NUM)) {
+    CDBG_ERROR("%s:%d] invalid job id %x", __func__, __LINE__,
+      job_id);
+    return NULL;
+  }
+  pthread_mutex_lock(&my_obj->clnt_mgr[client_idx].lock);
+  p_session = &my_obj->clnt_mgr[client_idx].session[session_idx];
+  pthread_mutex_unlock(&my_obj->clnt_mgr[client_idx].lock);
+  return p_session;
+}
 
 /** mm_jpeg_configure_params
  *
