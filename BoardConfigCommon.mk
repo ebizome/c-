@@ -47,6 +47,7 @@ TARGET_KERNEL_CROSS_COMPILE_PREFIX := arm-linux-androideabi-
 
 # Flags
 BOARD_NO_SECURE_DISCARD := true
+USE_CLANG_PLATFORM_BUILD := true
 
 # QCOM hardware
 BOARD_USES_QCOM_HARDWARE := true
