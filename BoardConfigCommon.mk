@@ -189,8 +189,8 @@ BOARD_CUSTOM_BOOTIMG_MK := device/amazon/hdx-common/mkboot.mk
 
 # SELinux policies
 # qcom sepolicy
-include device/qcom/sepolicy/sepolicy.mk
+#include device/qcom/sepolicy/sepolicy.mk
 
-BOARD_SEPOLICY_DIRS += \
-        device/amazon/hdx-common/sepolicy
+#BOARD_SEPOLICY_DIRS += \
+#        device/amazon/hdx-common/sepolicy
 
